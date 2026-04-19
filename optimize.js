@@ -13,7 +13,7 @@ try {
 // Configuration
 const TARGET_DIR = path.join(__dirname, 'my lab website');
 const IMG_QUALITY = 90; // Premium quality to avoid blur
-const VID_CRF = 26;     // High-fidelity video compression
+const VID_CRF = 32;     // Aggressive high-fidelity compression
 
 function getFilesRecursive(dir, fileList = []) {
     const files = fs.readdirSync(dir);
@@ -55,11 +55,11 @@ async function optimize() {
             if (!fs.existsSync(outPath)) {
                 console.log(`🎬 Processing Video: ${path.relative(TARGET_DIR, filePath)}`);
                 try {
-                    // Slower preset for maximum quality retention
-                    execSync(`ffmpeg -i "${filePath}" -vcodec libx264 -crf ${VID_CRF} -preset slower -an "${outPath}" -y`, { stdio: 'ignore' });
+                    // Using local ffmpeg.exe with Audio Preservation
+                    execSync(`.\\ffmpeg.exe -i "${filePath}" -c:v libx264 -crf ${VID_CRF} -preset slow -c:a aac -b:a 128k "${outPath}" -y`, { stdio: 'ignore' });
                     console.log(`   ✅ Success: ${name}_opt.mp4`);
                 } catch (e) {
-                    console.warn(`   ⚠️ ffmpeg error on ${name}. Ensure ffmpeg is in PATH.`);
+                    console.warn(`   ⚠️ ffmpeg error on ${name}.`);
                 }
             }
         }

@@ -34,7 +34,7 @@ const projectData = {
         tools: ["Touchdesigner"],
         description: "Video to Points with instancing in touchdesigner",
         process: [
-            { type: "video", src: "my lab website/flower e103/flower port video.mp4", caption: "Process Observation: Instancing Dynamics" }
+            { type: "video", src: "my lab website/flower e103/flower_port_video_opt.mp4", caption: "Process Observation: Instancing Dynamics" }
         ]
     },
     "E-104": {
@@ -42,7 +42,7 @@ const projectData = {
         tools: ["Antigravity IDE"],
         description: "Vibecoded",
         process: [
-            { type: "video", src: "my lab website/e104/Portfolio Phy Export.mp4", caption: "Technical Log: Final Physics Serialization" }
+            { type: "video", src: "my lab website/e104/Portfolio Phy Export_opt.mp4", caption: "Technical Log: Final Physics Serialization" }
         ]
     },
     "E-107": {
@@ -104,7 +104,7 @@ const projectData = {
         tools: ["Touchdesigner", "GLSL"],
         description: "Character-based rendering technique mapping custom ASCII set on text.",
         process: [
-            { type: "video", src: "my lab website/Asci11 2.mp4" }
+            { type: "video", src: "my lab website/Asci11 2_opt.mp4" }
         ]
     },
     "E-111": {
@@ -112,7 +112,7 @@ const projectData = {
         tools: ["JavaScript", "Math Studies"],
         description: "Mathematical representation of a 3D donut rendered in real-motion ASCII characters.",
         process: [
-            { type: "video", src: "my lab website/Donut Ascii.mp4" }
+            { type: "video", src: "my lab website/Donut Ascii_opt.mp4" }
         ]
     },
     "E-112": {
@@ -145,7 +145,7 @@ const projectData = {
         tools: ["Antigravity IDE"],
         description: "A retro audio visualizer mapping live frequency data across analog-style VU meters and spectrum bars.",
         process: [
-            { type: "video", src: "my lab website/Screen Recording 2026-02-21 204141(1).mp4" }
+            { type: "video", src: "my lab website/Screen Recording 2026-02-21 204141(1)_opt.mp4" }
         ]
     },
     "E-116": {
@@ -174,7 +174,7 @@ const projectData = {
         tools: ["Antigravity IDE", "VibeCoded"],
         description: "fun little experiment with vibe coding",
         process: [
-            { type: "video", src: "my lab website/Screen Recording 2026-02-27 141004.mp4" }
+            { type: "video", src: "my lab website/Screen Recording 2026-02-27 141004_opt.mp4" }
         ]
     },
     "E-119": {
@@ -182,7 +182,7 @@ const projectData = {
         tools: ["Powershell Gemini"],
         description: "A study of fungal growth patterns and movement using powershell gemini",
         process: [
-            { type: "video", src: "my lab website/Screen Recording 2025-08-02 110654 1(1).mp4" }
+            { type: "video", src: "my lab website/Screen Recording 2025-08-02 110654 1(1)_opt.mp4" }
         ]
     }
 };

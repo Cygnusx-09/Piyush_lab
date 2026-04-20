@@ -29,58 +29,26 @@ document.addEventListener('DOMContentLoaded', () => {
         duration: 0.8,
         ease: "power2.out"
     })
-        .to(loadStatus, {
-            value: 90,
-            duration: 12, // Slow crawl to pretend we're waiting
-            ease: "power1.out",
-            onUpdate: () => {
-                updateOdometer(loadStatus.value);
-                // If window already loaded, we speed up
-                if (windowLoaded && loadStatus.value < 100) {
-                    loadTl.kill();
-                    finishLoading();
-                }
+    .to(loadStatus, {
+        value: 90,
+        duration: 12, // Slow crawl to pretend we're waiting
+        ease: "power1.out",
+        onUpdate: () => {
+            updateOdometer(loadStatus.value);
+            // If window already loaded, we speed up
+            if (windowLoaded && loadStatus.value < 100) {
+                loadTl.kill();
+                finishLoading();
             }
-        });
+        }
+    });
 
     window.addEventListener('load', () => {
         windowLoaded = true;
-        checkReady();
+        if (!loadTl.isActive()) {
+            finishLoading();
+        }
     });
-
-    let firstImageLoaded = false;
-    const readyInterval = setInterval(() => {
-        if ((window.p5Ready && firstImageLoaded) || windowLoaded) {
-            clearInterval(readyInterval);
-            if (loadTl.isActive()) {
-                loadTl.kill();
-                finishLoading();
-            }
-        }
-    }, 100);
-
-    function checkReady() {
-        if (windowLoaded) {
-            if (loadTl.isActive()) {
-                loadTl.kill();
-                finishLoading();
-            }
-        }
-    }
-
-    function updateOdometer(val) {
-        val = Math.floor(val);
-        const h = Math.floor(val / 100);
-        const t = Math.floor((val % 100) / 10);
-        const o = val % 10;
-
-        const hRem = window.innerWidth < 1024 ? 5 : 8;
-
-        // Use gsap.set for instant sync without tween overlap jitter
-        gsap.set(digit100, { y: -h * hRem + "rem" });
-        gsap.set(digit10, { y: -t * hRem + "rem" });
-        gsap.set(digit1, { y: -val * hRem + "rem" });
-    }
 
     function finishLoading() {
         gsap.to(loadStatus, {
@@ -102,12 +70,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function updateOdometer(val) {
+        val = Math.floor(val);
+        const h = Math.floor(val / 100);
+        const t = Math.floor((val % 100) / 10);
+        const o = val % 10;
+
+        const hRem = window.innerWidth < 1024 ? 5 : 8;
+
+        gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
+        gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
+        gsap.to(digit1, { y: -o * hRem + "rem", duration: 0.6, ease: "power2.out" });
+    }
+
     function triggerEntrance() {
         gsap.from(".archive-item", {
             yPercent: 15,
             opacity: 0,
             duration: 1.4,
-            stagger: 0.03, // Faster pop-in for large grids
+            stagger: 0.1,
             ease: "power4.out"
         });
 
@@ -121,16 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 🔥 Lozad Initialization ---
-    let imagesProcessed = 0;
     const observer = lozad('.lozad', {
         loaded: function (el) {
             el.classList.add('loaded'); // Triggers the CSS fade-in
-
-            imagesProcessed++;
-            if (imagesProcessed >= 4) {
-                firstImageLoaded = true;
-            }
-
             if (el.tagName === 'VIDEO') {
                 el.loop = true;
                 el.volume = 0.45; // 🔊 Comfort Volume (45%)

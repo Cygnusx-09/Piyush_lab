@@ -13,51 +13,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const digit1 = document.querySelector('#digit-1 .digit-strip');
 
     let loadStatus = { value: 0 };
+    let windowLoaded = false;
 
-    // Animate counter to 100
-    const loadTl = gsap.to(loadStatus, {
-        value: 100,
-        duration: 3,
-        ease: "expo.inOut",
+    // Phase 1: Fast start to 30% (Initial Parse)
+    // Phase 2: Steady climb to 90%
+    // Phase 3: Wait for window.onload -> 100%
+    const loadTl = gsap.timeline({
         onUpdate: () => {
-            const val = Math.floor(loadStatus.value);
-            const h = Math.floor(val / 100);
-            const t = Math.floor((val % 100) / 10);
-            const o = val % 10;
-
-            const rowHeight = window.innerWidth < 1024 ? (window.innerWidth < 640 ? 80 : 80) : 128;
-            // Better to use actual computed height or just use vh/rem logic
-            // Since we know the height in CSS is 8rem or 5rem
-            const hRem = window.innerWidth < 1024 ? 5 : 8;
-
-            gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
-            gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
-            gsap.to(digit1, { y: -o * hRem + "rem", duration: 0.6, ease: "power2.out" });
-        },
-        onComplete: () => {
-            checkReady();
+            updateOdometer(loadStatus.value);
         }
     });
 
-    let windowLoaded = false;
+    loadTl.to(loadStatus, {
+        value: 30,
+        duration: 0.8,
+        ease: "power2.out"
+    })
+    .to(loadStatus, {
+        value: 90,
+        duration: 12, // Slow crawl to pretend we're waiting
+        ease: "power1.out",
+        onUpdate: () => {
+            updateOdometer(loadStatus.value);
+            // If window already loaded, we speed up
+            if (windowLoaded && loadStatus.value < 100) {
+                loadTl.kill();
+                finishLoading();
+            }
+        }
+    });
+
     window.addEventListener('load', () => {
         windowLoaded = true;
-        checkReady();
+        if (!loadTl.isActive()) {
+            finishLoading();
+        }
     });
 
-    function checkReady() {
-        if (windowLoaded && loadStatus.value === 100) {
-            gsap.to(loader, {
-                opacity: 0,
-                duration: 1,
-                ease: "power4.inOut",
-                onComplete: () => {
-                    loader.style.display = 'none';
-                    // Trigger entrance animations for main content
-                    triggerEntrance();
-                }
-            });
-        }
+    function finishLoading() {
+        gsap.to(loadStatus, {
+            value: 100,
+            duration: 0.5,
+            ease: "power2.out",
+            onUpdate: () => updateOdometer(loadStatus.value),
+            onComplete: () => {
+                gsap.to(loader, {
+                    opacity: 0,
+                    duration: 1,
+                    ease: "power4.inOut",
+                    onComplete: () => {
+                        loader.style.display = 'none';
+                        triggerEntrance();
+                    }
+                });
+            }
+        });
+    }
+
+    function updateOdometer(val) {
+        val = Math.floor(val);
+        const h = Math.floor(val / 100);
+        const t = Math.floor((val % 100) / 10);
+        const o = val % 10;
+
+        const hRem = window.innerWidth < 1024 ? 5 : 8;
+
+        gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
+        gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
+        gsap.to(digit1, { y: -o * hRem + "rem", duration: 0.6, ease: "power2.out" });
     }
 
     function triggerEntrance() {

@@ -45,10 +45,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('load', () => {
         windowLoaded = true;
-        if (!loadTl.isActive()) {
-            finishLoading();
-        }
+        checkReady();
     });
+
+    let firstImageLoaded = false;
+    const readyInterval = setInterval(() => {
+        if ((window.p5Ready && firstImageLoaded) || windowLoaded) {
+            clearInterval(readyInterval);
+            if (loadTl.isActive()) {
+                loadTl.kill();
+                finishLoading();
+            }
+        }
+    }, 100);
+
+    function checkReady() {
+        if (windowLoaded) {
+            if (loadTl.isActive()) {
+                loadTl.kill();
+                finishLoading();
+            }
+        }
+    }
+
+    function updateOdometer(val) {
+        val = Math.floor(val);
+        const h = Math.floor(val / 100);
+        const t = Math.floor((val % 100) / 10);
+        const o = val % 10;
+
+        const hRem = window.innerWidth < 1024 ? 5 : 8;
+
+        gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
+        gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
+        gsap.to(digit1, { y: -val * hRem + "rem", duration: 0.6, ease: "power2.out" });
+    }
 
     function finishLoading() {
         gsap.to(loadStatus, {
@@ -70,19 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function updateOdometer(val) {
-        val = Math.floor(val);
-        const h = Math.floor(val / 100);
-        const t = Math.floor((val % 100) / 10);
-        const o = val % 10;
-
-        const hRem = window.innerWidth < 1024 ? 5 : 8;
-
-        gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
-        gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
-        gsap.to(digit1, { y: -o * hRem + "rem", duration: 0.6, ease: "power2.out" });
-    }
-
     function triggerEntrance() {
         gsap.from(".archive-item", {
             yPercent: 15,
@@ -102,9 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 🔥 Lozad Initialization ---
+    let imagesProcessed = 0;
     const observer = lozad('.lozad', {
         loaded: function (el) {
             el.classList.add('loaded'); // Triggers the CSS fade-in
+            
+            imagesProcessed++;
+            if (imagesProcessed >= 1) {
+                firstImageLoaded = true;
+            }
+
             if (el.tagName === 'VIDEO') {
                 el.loop = true;
                 el.volume = 0.45; // 🔊 Comfort Volume (45%)

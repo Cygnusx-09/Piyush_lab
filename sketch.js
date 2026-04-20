@@ -31,6 +31,7 @@ function preload() {
 }
 
 function setup() {
+    window.p5Ready = true;
     header = document.getElementById('header-canvas');
     let canvas = createCanvas(header.offsetWidth, header.offsetHeight);
     canvas.parent('header-canvas');

@@ -1,12 +1,10 @@
 // -------------------------------------------------------------
-// ⚙️ CONFIGURATION
+// ⚙️ CONFIGURATION - INTERACTIVE TITLE ONLY
 // -------------------------------------------------------------
 let textStr = "Lab.";
-let subTitleStr = "A collection of things piyush has built while \nfiguring stuff out";
-let baseFontSize = 120;
-let baseSubTitleSize = 20;
+let baseFontSize = 120; // Restored to 120
 
-// Dynamics
+// Dynamics (RESTORED TO ORIGINAL)
 let dotSize = 1;
 let maxSpeed = 20;
 let maxForce = 0.5;
@@ -15,19 +13,18 @@ let homeLoyalty = 0.8;
 let mouseFear = 2.0;
 
 // Colors
-let particleColor = [245, 245, 245];
-let subTitleColor = [175, 175, 175];
+let particleColor = [245, 245, 245]; // Restored to 245
 // -------------------------------------------------------------
 
 let fontHeader;
-let fontSubtitle;
 let particles = [];
 let initialized = false;
 let header;
+let fontSize;
+let marginX, marginY;
 
 function preload() {
     fontHeader = loadFont('Satoshi-Bold.otf');
-    fontSubtitle = loadFont('Satoshi_Complete/Fonts/OTF/Satoshi-Regular.otf');
 }
 
 function setup() {
@@ -36,25 +33,20 @@ function setup() {
     canvas.parent('header-canvas');
     pixelDensity(displayDensity());
     textFont(fontHeader);
-    rectMode(CENTER); // Fixed: Set rectMode to CENTER for squares
+    rectMode(CENTER);
 
-    // Initializing responsive params
     updateResponsiveParams();
 }
 
 function updateResponsiveParams() {
     if (width < 600) {
-        fontSize = width * 0.18; // More air for the 60px margin
-        subTitleSize = 14;
-        marginX = 48; // Safer indentation for mobile
+        fontSize = width * 0.20;
+        marginX = 60; // Back to 60 as per "like tablet" request earlier
         marginY = 80;
-        textAlignMode = LEFT;
     } else {
         fontSize = baseFontSize;
-        subTitleSize = baseSubTitleSize;
         marginX = 60;
         marginY = 150;
-        textAlignMode = LEFT;
     }
 }
 
@@ -65,15 +57,14 @@ function initSketch() {
         pg.pixelDensity(1);
         pg.textFont(fontHeader);
         pg.textSize(fontSize);
-        pg.textAlign(textAlignMode, TOP);
+        pg.textAlign(LEFT, TOP);
         pg.fill(255);
 
-        // Responsive text anchor
-        pg.textAlign(LEFT, TOP);
-        pg.text(textStr, 0, marginY);
+        // Draw text starting at 0 (we translate in draw)
+        pg.text(textStr, 0, 0);
 
         pg.loadPixels();
-        const step = dotSize; // Synchronize sampling with particle size for "zero distance" at rest
+        const step = dotSize; // Restored to exactly dotSize
         for (let y = 0; y < pg.height; y += step) {
             for (let x = 0; x < pg.width; x += step) {
                 let index = (x + y * pg.width) * 4;
@@ -88,29 +79,12 @@ function initSketch() {
 
 function draw() {
     background(0);
-    if (fontHeader && fontSubtitle) {
+    if (fontHeader) {
         if (!initialized) initSketch();
 
         push();
-        translate(marginX, 0); // Enforce left alignment via translate
+        translate(marginX, marginY);
 
-        // Draw Subtitle
-        textFont(fontSubtitle);
-        textAlign(LEFT, TOP);
-        textSize(subTitleSize);
-        fill(subTitleColor[0], subTitleColor[1], subTitleColor[2]);
-        noStroke();
-
-        let subTitleY = marginY + fontSize + (width < 600 ? 5 : 10);
-        let wrapWidth = width - (marginX * 2);
-
-        if (width < 600) {
-            text(subTitleStr, 0, subTitleY, wrapWidth); 
-        } else {
-            text(subTitleStr, 0, subTitleY);
-        }
-
-        // Draw Particles relative to the same 0,0 translate
         for (let p of particles) {
             p.update();
             p.show();
@@ -128,10 +102,13 @@ class Particle {
     }
 
     update() {
-        let mouse = createVector(mouseX, mouseY);
+        // Essential: mouse offset by translation
+        let mouse = createVector(mouseX - marginX, mouseY - marginY);
+
         let arrive = this.calculateArrive(this.home);
         let flee = this.calculateFlee(mouse);
 
+        // RESTORED: Dynamic Multipliers
         arrive.mult(homeLoyalty);
         flee.mult(mouseFear);
 
@@ -176,7 +153,7 @@ class Particle {
     show() {
         fill(particleColor[0], particleColor[1], particleColor[2]);
         noStroke();
-        // Drawing squares slightly larger (0.5px) to eliminate sub-pixel gaps at rest
+        // RESTORED: +0.5 size fix for gapless rendering
         rect(this.pos.x, this.pos.y, dotSize + 0.5, dotSize + 0.5);
     }
 }
@@ -188,4 +165,3 @@ function windowResized() {
         initialized = false;
     }
 }
-

@@ -63,17 +63,34 @@
 
 .odometer-container {
     display: flex;
-    align-items: baseline;
+    align-items: center; /* Align center for rolling feel */
     font-family: 'Satoshi', sans-serif;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: -0.05em;
     line-height: 1;
+    overflow: hidden;
+    height: 8rem; /* Match font-size */
 }
 
-#odometer-value {
+.digit-col {
+    height: 8rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.digit-strip {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.digit-strip span {
+    display: block;
     font-size: 8rem;
-    min-width: 13rem; /* Prevents layout shift */
+    height: 8rem;
+    line-height: 1;
     text-align: right;
 }
 
@@ -81,15 +98,18 @@
     font-size: 3rem;
     opacity: 0.3;
     margin-left: 0.5rem;
+    align-self: flex-end;
+    padding-bottom: 1.2rem;
 }
 
 @media (max-width: 64rem) {
-    #odometer-value {
+    .odometer-container, .digit-col, .digit-strip span {
+        height: 5rem;
         font-size: 5rem;
-        min-width: 8rem;
     }
     .odometer-unit {
         font-size: 2rem;
+        padding-bottom: 0.8rem;
     }
     #loader {
         padding-right: 5vw;

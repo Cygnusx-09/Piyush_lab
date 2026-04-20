@@ -7,17 +7,32 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- ⌛ Odometer Loader Logic ---
-    const odometer = document.getElementById('odometer-value');
     const loader = document.getElementById('loader');
+    const digit100 = document.querySelector('#digit-100 .digit-strip');
+    const digit10 = document.querySelector('#digit-10 .digit-strip');
+    const digit1 = document.querySelector('#digit-1 .digit-strip');
+
     let loadStatus = { value: 0 };
 
     // Animate counter to 100
     const loadTl = gsap.to(loadStatus, {
         value: 100,
-        duration: 2.5,
-        ease: "power2.inOut",
+        duration: 3,
+        ease: "expo.inOut",
         onUpdate: () => {
-            odometer.innerText = Math.floor(loadStatus.value).toString().padStart(3, '0');
+            const val = Math.floor(loadStatus.value);
+            const h = Math.floor(val / 100);
+            const t = Math.floor((val % 100) / 10);
+            const o = val % 10;
+
+            const rowHeight = window.innerWidth < 1024 ? (window.innerWidth < 640 ? 80 : 80) : 128;
+            // Better to use actual computed height or just use vh/rem logic
+            // Since we know the height in CSS is 8rem or 5rem
+            const hRem = window.innerWidth < 1024 ? 5 : 8;
+
+            gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
+            gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
+            gsap.to(digit1, { y: -o * hRem + "rem", duration: 0.6, ease: "power2.out" });
         },
         onComplete: () => {
             checkReady();

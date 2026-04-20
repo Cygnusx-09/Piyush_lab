@@ -70,17 +70,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Populate the ones strip for continuous roll (101 spans total)
+    const strip1 = document.getElementById('strip-1');
+    if (strip1) {
+        let content = '';
+        for (let i = 0; i < 11; i++) { // 11 cycles of 0-9
+            content += '<span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>';
+        }
+        content += '<span>0</span>'; // The final 100
+        strip1.innerHTML = content;
+    }
+
     function updateOdometer(val) {
-        val = Math.floor(val);
-        const h = Math.floor(val / 100);
-        const t = Math.floor((val % 100) / 10);
-        const o = val % 10;
+        const hRem = window.innerWidth < 1024 ? 5 : 8; // Match CSS height
 
-        const hRem = window.innerWidth < 1024 ? 5 : 8;
+        // Real mechanical dial logic: 
+        // 1 column scrolls based on the EXACT value
+        // 10 column scrolls based on the val/10
+        // 100 column scrolls based on val/100
 
-        gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
-        gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
-        gsap.to(digit1, { y: -o * hRem + "rem", duration: 0.6, ease: "power2.out" });
+        const y1 = -val * hRem;
+        const y10 = -(val / 10) * hRem;
+        const y100 = -(val / 100) * hRem;
+
+        // Using gsap.set for 1:1 real-time linkage without tween-lag
+        // We use translate3d for GPU acceleration (smoother rolling)
+        gsap.set(digit1, { y: y1 + "rem" });
+        gsap.set(digit10, { y: y10 + "rem" });
+        gsap.set(digit100, { y: y100 + "rem" });
     }
 
     function triggerEntrance() {

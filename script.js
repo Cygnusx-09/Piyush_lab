@@ -29,19 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
         duration: 0.8,
         ease: "power2.out"
     })
-    .to(loadStatus, {
-        value: 90,
-        duration: 12, // Slow crawl to pretend we're waiting
-        ease: "power1.out",
-        onUpdate: () => {
-            updateOdometer(loadStatus.value);
-            // If window already loaded, we speed up
-            if (windowLoaded && loadStatus.value < 100) {
-                loadTl.kill();
-                finishLoading();
+        .to(loadStatus, {
+            value: 90,
+            duration: 12, // Slow crawl to pretend we're waiting
+            ease: "power1.out",
+            onUpdate: () => {
+                updateOdometer(loadStatus.value);
+                // If window already loaded, we speed up
+                if (windowLoaded && loadStatus.value < 100) {
+                    loadTl.kill();
+                    finishLoading();
+                }
             }
-        }
-    });
+        });
 
     window.addEventListener('load', () => {
         windowLoaded = true;
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const observer = lozad('.lozad', {
         loaded: function (el) {
             el.classList.add('loaded'); // Triggers the CSS fade-in
-            
+
             imagesProcessed++;
             if (imagesProcessed >= 1) {
                 firstImageLoaded = true;

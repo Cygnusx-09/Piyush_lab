@@ -44,6 +44,58 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
+/* ⌛ Cinematic Loader Styles */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    z-index: 9999;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 10vw;
+    pointer-events: all;
+    transition: opacity 1s cubic-bezier(1, 0, 0, 1), visibility 1s;
+}
+
+.odometer-container {
+    display: flex;
+    align-items: baseline;
+    font-family: 'Satoshi', sans-serif;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.05em;
+    line-height: 1;
+}
+
+#odometer-value {
+    font-size: 8rem;
+    min-width: 13rem; /* Prevents layout shift */
+    text-align: right;
+}
+
+.odometer-unit {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-left: 0.5rem;
+}
+
+@media (max-width: 64rem) {
+    #odometer-value {
+        font-size: 5rem;
+        min-width: 8rem;
+    }
+    .odometer-unit {
+        font-size: 2rem;
+    }
+    #loader {
+        padding-right: 5vw;
+    }
+}
+
 :root {
     --bg-color: #000000;
     --text-main: #ffffff;

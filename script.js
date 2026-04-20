@@ -6,6 +6,63 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- ⌛ Odometer Loader Logic ---
+    const odometer = document.getElementById('odometer-value');
+    const loader = document.getElementById('loader');
+    let loadStatus = { value: 0 };
+
+    // Animate counter to 100
+    const loadTl = gsap.to(loadStatus, {
+        value: 100,
+        duration: 2.5,
+        ease: "power2.inOut",
+        onUpdate: () => {
+            odometer.innerText = Math.floor(loadStatus.value).toString().padStart(3, '0');
+        },
+        onComplete: () => {
+            checkReady();
+        }
+    });
+
+    let windowLoaded = false;
+    window.addEventListener('load', () => {
+        windowLoaded = true;
+        checkReady();
+    });
+
+    function checkReady() {
+        if (windowLoaded && loadStatus.value === 100) {
+            gsap.to(loader, {
+                opacity: 0,
+                duration: 1,
+                ease: "power4.inOut",
+                onComplete: () => {
+                    loader.style.display = 'none';
+                    // Trigger entrance animations for main content
+                    triggerEntrance();
+                }
+            });
+        }
+    }
+
+    function triggerEntrance() {
+        gsap.from(".archive-item", {
+            yPercent: 15,
+            opacity: 0,
+            duration: 1.4,
+            stagger: 0.1,
+            ease: "power4.out"
+        });
+
+        // Any other reveal logic
+        gsap.from("#header-canvas", {
+            opacity: 0,
+            scale: 1.05,
+            duration: 2,
+            ease: "power3.out"
+        });
+    }
+
     // --- 🔥 Lozad Initialization ---
     const observer = lozad('.lozad', {
         loaded: function (el) {
@@ -19,16 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     observer.observe();
     lucide.createIcons();
-
-    // --- ✨ Cinematic Grid Entrance ---
-    gsap.from(".archive-item", {
-        yPercent: 15,
-        opacity: 0,
-        duration: 1.4,
-        stagger: 0.1,
-        ease: "power4.out",
-        delay: 0.8
-    });
 
     // --- 🔉 Audio Hover Logic (Grid & Dossier) ---
     document.addEventListener('mouseover', e => {

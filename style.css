@@ -67,7 +67,7 @@
     font-family: 'Satoshi', sans-serif;
     font-weight: 900;
     color: #ffffff;
-    letter-spacing: -0.05em;
+    letter-spacing: 0.05em; /* Increased for mobile legibility */
     line-height: 1;
     overflow: hidden;
     height: 8rem; /* Match font-size */

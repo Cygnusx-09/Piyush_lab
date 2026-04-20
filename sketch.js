@@ -46,10 +46,10 @@ function updateResponsiveParams() {
     // Breakpoint: Mobile Logic
     if (width < 600) {
         fontSize = width * 0.25;
-        subTitleSize = 16;
-        marginX = width / 2; // Center horizontally
-        marginY = 100; // Shifted Down
-        textAlignMode = CENTER;
+        subTitleSize = 15;
+        marginX = 24;
+        marginY = 80;
+        textAlignMode = LEFT;
     } else {
         fontSize = baseFontSize;
         subTitleSize = baseSubTitleSize;
@@ -103,8 +103,9 @@ function draw() {
         let subTitleY = marginY + fontSize + (width < 600 ? 5 : 10);
 
         // Wrap subtitle logic for mobile
+        // Wrap subtitle logic for mobile
         if (width < 600) {
-            text(subTitleStr, width / 2 - (width * 0.4), subTitleY, width * 0.8);
+            text(subTitleStr, marginX, subTitleY, width - 48); // 24px padding on each side
         } else {
             text(subTitleStr, drawX, subTitleY);
         }

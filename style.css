@@ -1,4 +1,15 @@
 /* 🛰️ Global Navigation */
+@font-face {
+    font-family: 'Satoshi';
+    src: url('Satoshi-Bold.otf') format('opentype');
+    font-weight: 700;
+}
+@font-face {
+    font-family: 'Satoshi';
+    src: url('Satoshi_Complete/Fonts/OTF/Satoshi-Regular.otf') format('opentype');
+    font-weight: 400;
+}
+
 .main-nav {
     position: fixed;
     top: 0;
@@ -87,11 +98,14 @@
 }
 
 .digit-strip span {
-    display: block;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
     font-size: 8rem;
     height: 8rem;
-    line-height: 1;
+    line-height: 8rem;
     text-align: right;
+    box-sizing: border-box;
 }
 
 .odometer-unit {
@@ -106,6 +120,7 @@
     .odometer-container, .digit-col, .digit-strip span {
         height: 5rem;
         font-size: 5rem;
+        line-height: 5rem;
     }
     .odometer-unit {
         font-size: 2rem;

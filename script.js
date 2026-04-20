@@ -76,9 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const hRem = window.innerWidth < 1024 ? 5 : 8;
 
-        gsap.to(digit100, { y: -h * hRem + "rem", duration: 0.4, ease: "power2.out" });
-        gsap.to(digit10, { y: -t * hRem + "rem", duration: 0.5, ease: "power2.out" });
-        gsap.to(digit1, { y: -val * hRem + "rem", duration: 0.6, ease: "power2.out" });
+        // Use gsap.set for instant sync without tween overlap jitter
+        gsap.set(digit100, { y: -h * hRem + "rem" });
+        gsap.set(digit10, { y: -t * hRem + "rem" });
+        gsap.set(digit1, { y: -val * hRem + "rem" });
     }
 
     function finishLoading() {
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             yPercent: 15,
             opacity: 0,
             duration: 1.4,
-            stagger: 0.1,
+            stagger: 0.03, // Faster pop-in for large grids
             ease: "power4.out"
         });
 
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.classList.add('loaded'); // Triggers the CSS fade-in
 
             imagesProcessed++;
-            if (imagesProcessed >= 1) {
+            if (imagesProcessed >= 4) {
                 firstImageLoaded = true;
             }
 

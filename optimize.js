@@ -38,11 +38,11 @@ async function optimize() {
         const name = path.parse(filePath).name;
 
         // Image Pass (Skip if already webp)
-        if (['.jpg', '.jpeg', '.png'].includes(ext)) {
+        if (['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
             const outPath = path.join(dir, `${name}.webp`);
             if (!fs.existsSync(outPath)) {
-                console.log(`📸 Processing Image: ${path.relative(TARGET_DIR, filePath)}`);
-                await sharp(filePath)
+                console.log(`📸 Processing Image/GIF: ${path.relative(TARGET_DIR, filePath)}`);
+                await sharp(filePath, { animated: true })
                     .webp({ quality: IMG_QUALITY, lossless: false, smartSubsample: true })
                     .toFile(outPath)
                     .catch(e => console.error(`   ❌ Failed: ${name}`, e));

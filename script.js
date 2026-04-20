@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.classList.add('loaded'); // Triggers the CSS fade-in
             if (el.tagName === 'VIDEO') {
                 el.loop = true;
+                el.volume = 0.45; // 🔊 Comfort Volume (45%)
                 el.play().catch(e => console.log("Autoplay blocked", e));
             }
         }
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const video = item.querySelector('video');
             if (video) {
                 video.muted = false;
+                video.volume = 0.45; // Ensure volume is set on unmute
                 video.play().catch(() => { });
             }
         }
@@ -53,6 +55,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', () => {
         // This is a dummy move to satisfy browser autoplay policies
     }, { once: true });
+
+    // 🌪️ INITIALIZE SMOOTH SCROLL (LENIS)
+    const lenis = new Lenis({
+        lerp: 0.1,
+        wheelMultiplier: 1.2,
+        gestureOrientation: 'vertical',
+        smoothWheel: true
+    });
+    document.documentElement.classList.add('lenis');
+
+    function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
 
     // --- 🚀 DEEP DIVE LOGIC (Staggered Float) ---
     const grid = document.querySelector('.archive-grid');
@@ -111,19 +128,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 2. Immersive GSAP Sequence
-        gsap.set(dossier, { display: 'block', opacity: 0, scale: 1.02 });
+        lenis.stop(); // 🌪️ FREEZE SMOOTH SCROLL
+        gsap.set(dossier, { display: 'block', opacity: 0, scale: 1.15, filter: "blur(0px)" });
 
         const tl = gsap.timeline();
 
-        tl.to(grid, { scale: 0.98, opacity: 0, duration: 0.8, ease: "expo.out" });
-
+        const bgElements = [grid, document.getElementById('header-canvas')];
+        tl.to(bgElements, { scale: 0.98, filter: "blur(4px)", opacity: 0, duration: 0.8, ease: "expo.out" });
         tl.to(dossier, {
             opacity: 1,
             scale: 1,
             duration: 1,
             ease: "expo.out",
             onStart: () => {
-                window.scrollTo(0, 0);
+                lenis.scrollTo(0, { immediate: true });
                 document.body.classList.add('dossier-open'); // LOCK SCROLL
 
                 // Inject raw text
@@ -132,24 +150,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Simple smooth block-level animation
                 gsap.from([titleEl, descEl], {
-                    yPercent: 20,
+                    yPercent: 60,
                     opacity: 0,
-                    duration: 1.2,
-                    stagger: 0.15,
-                    ease: "power3.out",
-                    delay: 0.4
+                    duration: 1,
+                    stagger: 0.1,
+                    ease: "power4.out",
+                    delay: 0.2
                 });
             }
         }, "-=0.6");
 
         // Staggered entrance for stats and gallery items
         tl.from(".dossier-stats, .dossier-item", {
-            yPercent: 10,
+            yPercent: 30,
             opacity: 0,
-            duration: 1.2,
+            duration: 1,
             stagger: 0.1,
-            ease: "power3.out"
-        }, "-=0.5");
+            ease: "power4.out"
+        }, "-=0.7");
 
         observer.observe(); // Refresh Lozad for new gallery items
         lucide.createIcons();
@@ -161,16 +179,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const tl = gsap.timeline({
             onComplete: () => {
                 gsap.set(dossier, { display: 'none' });
+                lenis.start(); // 🌪️ RESTORE SMOOTH SCROLL
             }
         });
 
-        tl.to(dossier, { opacity: 0, scale: 1.05, duration: 0.6, ease: "expo.in" });
-        tl.to(grid, {
-            scale: 1,
-            opacity: 1,
+        tl.to(dossier, {
+            opacity: 0,
+            scale: 2,
+            filter: "blur(40px)",
             duration: 0.8,
+            ease: "expo.in"
+        });
+        tl.to([grid, document.getElementById('header-canvas')], {
+            scale: 1,
+            filter: "blur(0px)",
+            opacity: 1,
+            duration: 1,
             ease: "expo.out"
-        }, "-=0.3");
+        }, "-=0.4");
     }
 
     document.addEventListener('keydown', (e) => {

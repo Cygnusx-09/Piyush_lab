@@ -2,30 +2,32 @@
 // ⚙️ CONFIGURATION
 // -------------------------------------------------------------
 let textStr = "Lab.";
-let subTitleStr = "A collection of things piyush has built while figuring stuff out";
+let subTitleStr = "A collection of things piyush has built while \nfiguring stuff out";
 let baseFontSize = 120;
-let baseSubTitleSize = 32;
+let baseSubTitleSize = 20;
 
 // Dynamics
-let dotSize = 3;
-let maxSpeed = 10;
+let dotSize = 1;
+let maxSpeed = 20;
 let maxForce = 0.5;
-let mouseRadius = 60;
+let mouseRadius = 45;
 let homeLoyalty = 0.8;
 let mouseFear = 2.0;
 
 // Colors
-let particleColor = [255, 255, 255];
-let subTitleColor = [100, 100, 100];
+let particleColor = [245, 245, 245];
+let subTitleColor = [175, 175, 175];
 // -------------------------------------------------------------
 
-let font;
+let fontHeader;
+let fontSubtitle;
 let particles = [];
 let initialized = false;
 let header;
 
 function preload() {
-    font = loadFont('Satoshi-Bold.otf');
+    fontHeader = loadFont('Satoshi-Bold.otf');
+    fontSubtitle = loadFont('Satoshi_Complete/Fonts/OTF/Satoshi-Regular.otf');
 }
 
 function setup() {
@@ -33,7 +35,8 @@ function setup() {
     let canvas = createCanvas(header.offsetWidth, header.offsetHeight);
     canvas.parent('header-canvas');
     pixelDensity(displayDensity());
-    textFont(font);
+    textFont(fontHeader);
+    rectMode(CENTER); // Fixed: Set rectMode to CENTER for squares
 
     // Initializing responsive params
     updateResponsiveParams();
@@ -57,11 +60,11 @@ function updateResponsiveParams() {
 }
 
 function initSketch() {
-    if (font && !initialized) {
+    if (fontHeader && !initialized) {
         particles = [];
         let pg = createGraphics(width, height);
         pg.pixelDensity(1);
-        pg.textFont(font);
+        pg.textFont(fontHeader);
         pg.textSize(fontSize);
         pg.textAlign(textAlignMode, TOP);
         pg.fill(255);
@@ -71,7 +74,7 @@ function initSketch() {
         pg.text(textStr, drawX, marginY);
 
         pg.loadPixels();
-        const step = 4;
+        const step = dotSize; // Synchronize sampling with particle size for "zero distance" at rest
         for (let y = 0; y < pg.height; y += step) {
             for (let x = 0; x < pg.width; x += step) {
                 let index = (x + y * pg.width) * 4;
@@ -86,8 +89,10 @@ function initSketch() {
 
 function draw() {
     background(0);
-    if (font) {
+    if (fontHeader && fontSubtitle) {
         if (!initialized) initSketch();
+
+        textFont(fontSubtitle);
 
         textAlign(textAlignMode, TOP);
         textSize(subTitleSize);
@@ -166,9 +171,10 @@ class Particle {
     }
 
     show() {
-        stroke(particleColor[0], particleColor[1], particleColor[2]);
-        strokeWeight(dotSize);
-        point(this.pos.x, this.pos.y);
+        fill(particleColor[0], particleColor[1], particleColor[2]);
+        noStroke();
+        // Drawing squares slightly larger (0.5px) to eliminate sub-pixel gaps at rest
+        rect(this.pos.x, this.pos.y, dotSize + 0.5, dotSize + 0.5);
     }
 }
 

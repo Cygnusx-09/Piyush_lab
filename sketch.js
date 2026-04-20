@@ -43,18 +43,17 @@ function setup() {
 }
 
 function updateResponsiveParams() {
-    // Breakpoint: Mobile Logic
     if (width < 600) {
-        fontSize = width * 0.20;
-        subTitleSize = 15;
-        marginX = 60;
+        fontSize = width * 0.18; // More air for the 60px margin
+        subTitleSize = 14;
+        marginX = 48; // Safer indentation for mobile
         marginY = 80;
         textAlignMode = LEFT;
     } else {
         fontSize = baseFontSize;
         subTitleSize = baseSubTitleSize;
-        marginX = 60; // Now represents LEFT margin
-        marginY = 150; // Shifted Down
+        marginX = 60;
+        marginY = 150;
         textAlignMode = LEFT;
     }
 }
@@ -70,8 +69,8 @@ function initSketch() {
         pg.fill(255);
 
         // Responsive text anchor
-        let drawX = (textAlignMode === CENTER) ? width / 2 : marginX;
-        pg.text(textStr, drawX, marginY);
+        pg.textAlign(LEFT, TOP);
+        pg.text(textStr, 0, marginY);
 
         pg.loadPixels();
         const step = dotSize; // Synchronize sampling with particle size for "zero distance" at rest
@@ -92,29 +91,31 @@ function draw() {
     if (fontHeader && fontSubtitle) {
         if (!initialized) initSketch();
 
-        textFont(fontSubtitle);
+        push();
+        translate(marginX, 0); // Enforce left alignment via translate
 
-        textAlign(textAlignMode, TOP);
+        // Draw Subtitle
+        textFont(fontSubtitle);
+        textAlign(LEFT, TOP);
         textSize(subTitleSize);
         fill(subTitleColor[0], subTitleColor[1], subTitleColor[2]);
         noStroke();
 
-        let drawX = (textAlignMode === CENTER) ? width / 2 : marginX;
         let subTitleY = marginY + fontSize + (width < 600 ? 5 : 10);
+        let wrapWidth = width - (marginX * 2);
 
-        // Wrap subtitle logic for mobile
-        // Wrap subtitle logic for mobile
-        // Wrap subtitle logic for mobile
         if (width < 600) {
-            text(subTitleStr, marginX, subTitleY, width - (marginX * 2)); 
+            text(subTitleStr, 0, subTitleY, wrapWidth); 
         } else {
-            text(subTitleStr, drawX, subTitleY);
+            text(subTitleStr, 0, subTitleY);
         }
 
+        // Draw Particles relative to the same 0,0 translate
         for (let p of particles) {
             p.update();
             p.show();
         }
+        pop();
     }
 }
 

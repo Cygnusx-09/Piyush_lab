@@ -2,7 +2,7 @@
 // ⚙️ CONFIGURATION - INTERACTIVE TITLE ONLY
 // -------------------------------------------------------------
 let textStr = "Lab.";
-let baseFontSize = 120; // Restored to 120
+let baseFontSize = 184; // Increased by 4rem (64px) from 120
 
 // Dynamics (RESTORED TO ORIGINAL)
 let dotSize = 1;
@@ -40,13 +40,13 @@ function setup() {
 
 function updateResponsiveParams() {
     if (width < 600) {
-        fontSize = width * 0.20;
-        marginX = 60; // Back to 60 as per "like tablet" request earlier
-        marginY = 80;
+        fontSize = (width * 0.20) + 32; // Added ~2rem (32px) to the base responsive size
+        marginX = width * 0.06; // Match 6vw from CSS --site-pad
+        marginY = height * 0.35; // Position text higher in the tighter 45vh container
     } else {
         fontSize = baseFontSize;
-        marginX = 60;
-        marginY = 150;
+        marginX = 60; 
+        marginY = height * 0.35; // Moved up slightly to ensure 184px font doesn't hit the top:60% description
     }
 }
 

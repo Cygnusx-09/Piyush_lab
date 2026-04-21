@@ -180,7 +180,7 @@ body.dossier-open {
     --text-dim: #888888;
     --grid-cols: 4;
     --grid-gap-h: 2.5rem;
-    --grid-gap-v: 4rem;
+    --grid-gap-v: 1rem;
 }
 
 @media (max-width: 90rem) {
@@ -206,20 +206,26 @@ body.dossier-open {
 #header-canvas {
     position: relative;
     width: 100%;
-    height: 60vh;
-    /* More height for mobile air */
+    height: 70vh;
+    /* Increased slightly for more air */
+    min-height: 600px;
+    /* IMPORTANT: Prevents vertical squashing of text */
     z-index: 10;
     background: #000000;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    /* Push info to bottom of hero */
+}
+
+@media (max-width: 48rem) {
+    #header-canvas {
+        height: 45vh;
+        /* Tighter hero on mobile to kill dead space */
+    }
 }
 
 /* 🎭 Hero Info Overlay */
 .hero-info {
     position: absolute;
-    bottom: 15%;
+    top: 60%;
+    /* Position relative to top instead of bottom to follow text flow */
     left: var(--site-pad);
     width: calc(100% - (var(--site-pad) * 2));
     z-index: 20;
@@ -229,12 +235,21 @@ body.dossier-open {
 .hero-description {
     font-family: 'Satoshi', sans-serif;
     font-weight: 400;
-    font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+    font-size: clamp(1rem, 2vw, 1.25rem);
     color: var(--text-dim);
     line-height: 1.4;
     max-width: 420px;
-    margin-top: 10vh;
-    /* Give space for the animated Lab. text above */
+    margin-top: 2rem;
+    /* Reduced from 18vh to prevent pushing into grid */
+    /* Increased margin to push text away from the canvas particles but closer to grid */
+}
+
+@media (max-width: 48rem) {
+    .hero-description {
+        margin-top: 1rem;
+        /* Tightened from 12vh */
+        max-width: 80%;
+    }
 }
 
 .archive-grid {
@@ -247,6 +262,13 @@ body.dossier-open {
     margin-top: 6rem;
 }
 
+@media (max-width: 48rem) {
+    .archive-grid {
+        margin-top: 2rem;
+        /* Pull items closer to hero on mobile */
+    }
+}
+
 .archive-item {
     display: flex;
     flex-direction: column;
@@ -254,7 +276,7 @@ body.dossier-open {
     text-decoration: none;
     color: inherit;
     align-items: flex-start;
-    margin-bottom: clamp(6rem, 15vw, 18rem);
+    margin-bottom: clamp(4rem, 12vw, 10rem);
 }
 
 /* Image & Video Fit Logic */
@@ -472,4 +494,28 @@ body.dossier-open {
 
 .archive-item .image-container {
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- 🖲️ AUDIO CUE FOLLOWER --- */
+#audio-cue {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    font-family: monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: #ffffff;
+    transform: translate(20px, 20px);
+    /* Position at the bottom-right of the cursor tip */
+    white-space: nowrap;
+    opacity: 0;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    /* Added shadow for readability against light assets */
+    transition: opacity 0.5s ease;
+}
+
+#audio-cue.visible {
+    opacity: 1;
 }

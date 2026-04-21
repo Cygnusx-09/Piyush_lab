@@ -116,6 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
             duration: 2,
             ease: "power3.out"
         });
+
+        showAudioCue();
     }
 
     // --- 🔥 Lozad Initialization ---
@@ -154,8 +156,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 🔓 Unlock browser audio context on first click
+    const audioCue = document.getElementById('audio-cue');
+
+    window.addEventListener('mousemove', e => {
+        if (audioCue) {
+            // CUSTOMIZE POSITION HERE:
+            // x offset (horizontal), y offset (vertical)
+            const offsetX = 16;
+            const offsetY = 18; // Moved "below more" as requested
+
+            gsap.to(audioCue, {
+                x: e.clientX + offsetX,
+                y: e.clientY + offsetY,
+                duration: 0.1, // Near-instant tracking
+                ease: "power2.out"
+            });
+        }
+    });
+
+    // Show cue after loader fades
+    function showAudioCue() {
+        if (audioCue) audioCue.classList.add('visible');
+    }
+
     document.body.addEventListener('click', () => {
-        // This is a dummy move to satisfy browser autoplay policies
+        if (audioCue) {
+            audioCue.classList.remove('visible');
+            setTimeout(() => audioCue.remove(), 500); // Clean up DOM after fade
+        }
     }, { once: true });
 
     // 🌪️ INITIALIZE SMOOTH SCROLL (LENIS)

@@ -6,6 +6,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Movement/blur/scale animations are dropped (opacity kept) when the OS asks for reduced motion
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // --- ⌛ Odometer Loader Logic ---
     const loader = document.getElementById('loader');
     const digit100 = document.querySelector('#digit-100 .digit-strip');
@@ -31,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
         .to(loadStatus, {
             value: 90,
-            duration: 12, // Slow crawl to pretend we're waiting
+            duration: 1.5, // Short crawl; then hold at 90% until window.load
             ease: "power1.out",
             onUpdate: () => {
                 updateOdometer(loadStatus.value);
@@ -82,19 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateOdometer(val) {
-        const hRem = window.innerWidth < 1024 ? 5 : 8; // Match CSS height
+        const rounded = Math.floor(val);
 
-        // Real mechanical dial logic: 
-        // 1 column scrolls based on the EXACT value
-        // 10 column scrolls based on the val/10
-        // 100 column scrolls based on val/100
+        const hRem = window.innerWidth < 1024 ? 5 : 8; // Match CSS height
 
         const y1 = -val * hRem;
         const y10 = -(val / 10) * hRem;
         const y100 = -(val / 100) * hRem;
 
-        // Using gsap.set for 1:1 real-time linkage without tween-lag
-        // We use translate3d for GPU acceleration (smoother rolling)
         gsap.set(digit1, { y: y1 + "rem" });
         gsap.set(digit10, { y: y10 + "rem" });
         gsap.set(digit100, { y: y100 + "rem" });
@@ -102,17 +100,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function triggerEntrance() {
         gsap.from(".archive-item", {
-            yPercent: 15,
+            yPercent: reduceMotion ? 0 : 15,
             opacity: 0,
             duration: 1.4,
             stagger: 0.1,
-            ease: "power4.out"
+            ease: "power4.out",
+            onComplete: () => observer.observe() // Re-scan after all transforms settle
         });
 
         // Any other reveal logic
         gsap.from("#header-canvas", {
             opacity: 0,
-            scale: 1.05,
+            scale: reduceMotion ? 1 : 1.05,
             duration: 2,
             ease: "power3.out"
         });
@@ -122,59 +121,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 🔥 Lozad Initialization ---
     const observer = lozad('.lozad', {
+        rootMargin: '500px 0px',
         loaded: function (el) {
             el.classList.add('loaded'); // Triggers the CSS fade-in
             if (el.tagName === 'VIDEO') {
                 el.loop = true;
-                el.volume = 0.45; // 🔊 Comfort Volume (45%)
-                el.play().catch(e => console.log("Autoplay blocked", e));
+                el.volume = 0; // Hover fades it up to 45%
+                // Grid videos only play while on screen (see playObserver); dossier videos play on load
+                if (!el.closest('.archive-grid') || el.dataset.visible === 'true') {
+                    el.play().catch(e => console.log("Autoplay blocked", e));
+                }
             }
         }
     });
     observer.observe();
     lucide.createIcons();
 
-    // --- 🔉 Audio Hover Logic (Grid & Dossier) ---
+    // --- ▶️ Play grid videos only while visible (saves decode/battery) ---
+    const playObserver = new IntersectionObserver(entries => {
+        entries.forEach(({ target, isIntersecting }) => {
+            target.dataset.visible = isIntersecting;
+            if (!isIntersecting) target.pause();
+            else if (target.classList.contains('loaded')) target.play().catch(() => { });
+        });
+    });
+    document.querySelectorAll('.archive-grid video').forEach(v => playObserver.observe(v));
+
+    // --- 🔉 Audio Hover Logic (Grid & Dossier - Smooth Fades) ---
+    // relatedTarget check: moving between children of the same item isn't an enter/leave.
+    // overwrite: a new fade kills the opposite one (and its pending mute).
+    // Browsers pause a video unmuted before the first click/keypress, so stay muted until then.
+    const canUnmute = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
+
     document.addEventListener('mouseover', e => {
         const item = e.target.closest('.archive-item, .dossier-item');
-        if (item) {
-            const video = item.querySelector('video');
-            if (video) {
-                video.muted = false;
-                video.volume = 0.45; // Ensure volume is set on unmute
-                video.play().catch(() => { });
-            }
+        if (!item || item.contains(e.relatedTarget) || !canUnmute()) return;
+        const video = item.querySelector('video');
+        if (video) {
+            video.muted = false;
+            gsap.to(video, {
+                volume: 0.45,
+                duration: 1,
+                ease: "power2.out",
+                overwrite: true
+            });
+            video.play().catch(() => { });
         }
     });
 
     document.addEventListener('mouseout', e => {
         const item = e.target.closest('.archive-item, .dossier-item');
-        if (item) {
-            const video = item.querySelector('video');
-            if (video) video.muted = true;
+        if (!item || item.contains(e.relatedTarget)) return;
+        const video = item.querySelector('video');
+        if (video) {
+            gsap.to(video, {
+                volume: 0,
+                duration: 0.5,
+                ease: "power2.in",
+                overwrite: true,
+                onComplete: () => {
+                    video.muted = true;
+                }
+            });
         }
     });
 
-    // 🔓 Unlock browser audio context on first click
+    // --- 🖲️ Audio Cue Cursor Follower ---
     const audioCue = document.getElementById('audio-cue');
 
     window.addEventListener('mousemove', e => {
         if (audioCue) {
-            // CUSTOMIZE POSITION HERE:
-            // x offset (horizontal), y offset (vertical)
             const offsetX = 16;
-            const offsetY = 18; // Moved "below more" as requested
-
+            const offsetY = 18;
             gsap.to(audioCue, {
                 x: e.clientX + offsetX,
                 y: e.clientY + offsetY,
-                duration: 0.1, // Near-instant tracking
+                duration: 0.1,
                 ease: "power2.out"
             });
         }
     });
 
-    // Show cue after loader fades
     function showAudioCue() {
         if (audioCue) audioCue.classList.add('visible');
     }
@@ -182,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', () => {
         if (audioCue) {
             audioCue.classList.remove('visible');
-            setTimeout(() => audioCue.remove(), 500); // Clean up DOM after fade
+            setTimeout(() => audioCue.remove(), 500);
         }
     }, { once: true });
 
@@ -191,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lerp: 0.1,
         wheelMultiplier: 1.2,
         gestureOrientation: 'vertical',
-        smoothWheel: true
+        smoothWheel: !reduceMotion // Instance stays (dossier calls stop/start/scrollTo); only the easing is dropped
     });
     document.documentElement.classList.add('lenis');
 
@@ -201,17 +228,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     requestAnimationFrame(raf);
 
+    // Safety net: re-observe on scroll to catch any missed lazy-load elements
+    let scrollObserveTimeout;
+    lenis.on('scroll', () => {
+        if (!scrollObserveTimeout) {
+            scrollObserveTimeout = setTimeout(() => {
+                observer.observe();
+                scrollObserveTimeout = null;
+            }, 500);
+        }
+    });
+
     // --- 🚀 DEEP DIVE LOGIC (Staggered Float) ---
     const grid = document.querySelector('.archive-grid');
     const dossier = document.getElementById('dossier');
 
+    let lastTrigger = null; // Grid item that opened the dossier; focus returns here on close
+
     document.querySelectorAll('.archive-item').forEach(item => {
+        const caption = item.querySelector('.caption');
+        const id = caption.textContent.trim();
+        const data = projectData[id];
+        item.dataset.id = id;
+        item.setAttribute('role', 'button');
+        item.tabIndex = 0;
+        if (data) {
+            item.setAttribute('aria-label', `${id}: ${data.title}`);
+            caption.insertAdjacentHTML('beforeend', `<span class="caption-title"> / ${data.title}</span>`);
+        }
+
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            const caption = item.querySelector('.caption').innerText;
-            const id = caption.split(' / ')[0].trim();
-            openDossier(id);
+            lastTrigger = item;
+            openDossier(item.dataset.id);
         });
+    });
+
+    // Enter/Space activate role="button" elements (grid items, dossier close)
+    document.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"]')) {
+            e.preventDefault();
+            e.target.click();
+        }
     });
 
     window.openDossier = function (id) {
@@ -223,21 +281,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const descEl = document.getElementById('dossier-description');
         const statsEl = document.querySelector('.dossier-stats');
 
-        // Reset Stats Table
-        statsEl.innerHTML = '';
-        if (data.team) statsEl.innerHTML += `<span class="stat-label">TEAM</span><span class="stat-value">${data.team}</span>`;
-        if (data.tools) statsEl.innerHTML += `<span class="stat-label">TOOLS</span><span class="stat-value">${data.tools.join(", ")}</span>`;
+        // Reset Stats Table (built as one string: a single DOM parse)
+        statsEl.innerHTML =
+            (data.team ? `<span class="stat-label">TEAM</span><span class="stat-value">${data.team}</span>` : '') +
+            (data.tools ? `<span class="stat-label">TOOLS</span><span class="stat-value">${data.tools.join(", ")}</span>` : '');
 
         const gallery = document.getElementById('dossier-gallery');
-        gallery.innerHTML = '';
 
-        data.process.forEach(media => {
+        gallery.innerHTML = data.process.map(media => {
             if (media.type === 'image') {
-                gallery.innerHTML += `<div class="dossier-item">
+                return `<div class="dossier-item">
                                         <img data-src="${media.src}" class="lozad">
                                       </div>`;
             } else if (media.type === 'video') {
-                gallery.innerHTML += `<div class="dossier-item">
+                return `<div class="dossier-item">
                                     <video class="lozad" data-src="${media.src}" loop muted autoplay playsinline preload="auto"></video>
                                   </div>`;
             } else if (media.type === 'pair') {
@@ -250,21 +307,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
 
-                gallery.innerHTML += `<div class="dossier-item dossier-pair">
+                return `<div class="dossier-item dossier-pair">
                                     ${renderAsset(media.items[0])}
                                     ${renderAsset(media.items[1])}
                                   </div>`;
             }
-        });
+            return '';
+        }).join('');
 
         // 2. Immersive GSAP Sequence
         lenis.stop(); // 🌪️ FREEZE SMOOTH SCROLL
-        gsap.set(dossier, { display: 'block', opacity: 0, scale: 1.15, filter: "blur(0px)" });
+        gsap.set(dossier, { display: 'block', opacity: 0, scale: reduceMotion ? 1 : 1.15, filter: "blur(0px)" });
 
         const tl = gsap.timeline();
 
         const bgElements = [grid, document.getElementById('header-canvas')];
-        tl.to(bgElements, { scale: 0.98, filter: "blur(4px)", opacity: 0, duration: 0.8, ease: "expo.out" });
+        bgElements.forEach(el => el.inert = true); // Keep Tab inside the dossier
+        tl.to(bgElements, {
+            scale: reduceMotion ? 1 : 0.98,
+            filter: reduceMotion ? "blur(0px)" : "blur(4px)",
+            opacity: 0, duration: 0.8, ease: "expo.out"
+        });
         tl.to(dossier, {
             opacity: 1,
             scale: 1,
@@ -277,10 +340,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Inject raw text
                 titleEl.innerText = data.title;
                 descEl.innerText = data.description;
+                dossier.querySelector('.close-dossier').focus({ preventScroll: true });
 
                 // Simple smooth block-level animation
                 gsap.from([titleEl, descEl], {
-                    yPercent: 60,
+                    yPercent: reduceMotion ? 0 : 60,
                     opacity: 0,
                     duration: 1,
                     stagger: 0.1,
@@ -292,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Staggered entrance for stats and gallery items
         tl.from(".dossier-stats, .dossier-item", {
-            yPercent: 30,
+            yPercent: reduceMotion ? 0 : 30,
             opacity: 0,
             duration: 1,
             stagger: 0.1,
@@ -306,6 +370,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.closeDossier = function () {
         document.body.classList.remove('dossier-open'); // UNLOCK SCROLL
 
+        const bgElements = [grid, document.getElementById('header-canvas')];
+        bgElements.forEach(el => el.inert = false);
+        if (lastTrigger) lastTrigger.focus({ preventScroll: true });
+
         const tl = gsap.timeline({
             onComplete: () => {
                 gsap.set(dossier, { display: 'none' });
@@ -315,12 +383,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tl.to(dossier, {
             opacity: 0,
-            scale: 2,
-            filter: "blur(40px)",
+            scale: reduceMotion ? 1 : 2,
+            filter: reduceMotion ? "blur(0px)" : "blur(40px)",
             duration: 0.8,
             ease: "expo.in"
         });
-        tl.to([grid, document.getElementById('header-canvas')], {
+        tl.to(bgElements, {
             scale: 1,
             filter: "blur(0px)",
             opacity: 1,
@@ -330,6 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeDossier();
+        if (e.key === 'Escape' && document.body.classList.contains('dossier-open')) closeDossier();
     });
 });

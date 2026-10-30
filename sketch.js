@@ -1,3 +1,5 @@
+p5.disableFriendlyErrors = true; // Must run before setup()
+
 // -------------------------------------------------------------
 // ⚙️ CONFIGURATION - INTERACTIVE TITLE ONLY
 // -------------------------------------------------------------
@@ -22,6 +24,7 @@ let initialized = false;
 let header;
 let fontSize;
 let marginX, marginY;
+let mouseLocal; // Reused every frame instead of allocating one per particle
 
 function preload() {
     fontHeader = loadFont('Satoshi-Bold.otf');
@@ -31,9 +34,9 @@ function setup() {
     header = document.getElementById('header-canvas');
     let canvas = createCanvas(header.offsetWidth, header.offsetHeight);
     canvas.parent('header-canvas');
-    pixelDensity(displayDensity());
+    pixelDensity(min(displayDensity(), 2)); // Cap at 2x: same crispness on retina, skips 3x phone overdraw
     textFont(fontHeader);
-    rectMode(CENTER);
+    mouseLocal = createVector(0, 0);
 
     updateResponsiveParams();
 }
@@ -82,13 +85,23 @@ function draw() {
     if (fontHeader) {
         if (!initialized) initSketch();
 
+        // Essential: mouse offset by translation
+        mouseLocal.set(mouseX - marginX, mouseY - marginY);
+
         push();
         translate(marginX, marginY);
 
+        // Batched: every particle goes into one canvas path, filled once
+        // (+0.5 size fix kept for gapless rendering; rects centered on the particle)
+        const ctx = drawingContext;
+        const s = dotSize + 0.5;
+        ctx.fillStyle = `rgb(${particleColor[0]}, ${particleColor[1]}, ${particleColor[2]})`;
+        ctx.beginPath();
         for (let p of particles) {
-            p.update();
-            p.show();
+            p.update(mouseLocal);
+            ctx.rect(p.pos.x - s / 2, p.pos.y - s / 2, s, s);
         }
+        ctx.fill();
         pop();
     }
 }
@@ -101,19 +114,21 @@ class Particle {
         this.acc = createVector(0, 0);
     }
 
-    update() {
-        // Essential: mouse offset by translation
-        let mouse = createVector(mouseX - marginX, mouseY - marginY);
-
+    update(mouse) {
         let arrive = this.calculateArrive(this.home);
-        let flee = this.calculateFlee(mouse);
 
         // RESTORED: Dynamic Multipliers
         arrive.mult(homeLoyalty);
-        flee.mult(mouseFear);
-
         this.applyForce(arrive);
-        this.applyForce(flee);
+
+        // Flee only inside mouseRadius (cheap squared-distance test; outside it the force was zero)
+        let dx = mouse.x - this.pos.x;
+        let dy = mouse.y - this.pos.y;
+        if (dx * dx + dy * dy < mouseRadius * mouseRadius) {
+            let flee = this.calculateFlee(mouse);
+            flee.mult(mouseFear);
+            this.applyForce(flee);
+        }
 
         this.vel.add(this.acc);
         this.vel.limit(maxSpeed);
@@ -133,28 +148,17 @@ class Particle {
     }
 
     calculateFlee(target) {
+        // Caller has already checked the particle is inside mouseRadius
         let desired = p5.Vector.sub(target, this.pos);
-        let d = desired.mag();
-        if (d < mouseRadius) {
-            desired.setMag(maxSpeed);
-            desired.mult(-1);
-            let steer = p5.Vector.sub(desired, this.vel);
-            steer.limit(maxForce);
-            return steer;
-        } else {
-            return createVector(0, 0);
-        }
+        desired.setMag(maxSpeed);
+        desired.mult(-1);
+        let steer = p5.Vector.sub(desired, this.vel);
+        steer.limit(maxForce);
+        return steer;
     }
 
     applyForce(f) {
         this.acc.add(f);
-    }
-
-    show() {
-        fill(particleColor[0], particleColor[1], particleColor[2]);
-        noStroke();
-        // RESTORED: +0.5 size fix for gapless rendering
-        rect(this.pos.x, this.pos.y, dotSize + 0.5, dotSize + 0.5);
     }
 }
 

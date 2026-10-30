@@ -20,7 +20,7 @@
     font-family: 'Satoshi', sans-serif;
     font-size: 1.1rem;
     letter-spacing: -0.01em;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
     pointer-events: auto;
 }
 
@@ -125,15 +125,29 @@
 }
 
 :root {
+    --site-pad: clamp(1.25rem, 6vw, 3.5rem);
+    /* Consistent padding across site */
     --bg-color: #000000;
     --text-main: #ffffff;
-    --text-dim: #666666;
-    --grid-gap-v: 0.5rem;
-    --grid-gap-h: clamp(1.5rem, 6vw, 6rem);
+    --text-dim: #888888;
+    --grid-cols: 4;
+    --grid-gap-h: 2.5rem;
+    --grid-gap-v: 1rem;
+    --hover-scale: 1.02;
+    /* Grid hover zoom — tune by eye */
 }
 
 html {
     scroll-behavior: initial;
+}
+
+/* Hide scrollbars site-wide (page + dossier); scrolling still works */
+* {
+    scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
 }
 
 html.lenis,
@@ -170,37 +184,6 @@ body {
 /* 🔒 Scroll Lock for Dossier */
 body.dossier-open {
     overflow: hidden;
-}
-
-:root {
-    --site-pad: clamp(1.25rem, 6vw, 3.5rem);
-    /* Consistent padding across site */
-    --bg-color: #000000;
-    --text-main: #ffffff;
-    --text-dim: #888888;
-    --grid-cols: 4;
-    --grid-gap-h: 2.5rem;
-    --grid-gap-v: 1rem;
-}
-
-@media (max-width: 90rem) {
-    :root {
-        --grid-cols: 3;
-    }
-}
-
-@media (max-width: 64rem) {
-    :root {
-        --grid-cols: 2;
-        --grid-gap-v: 2rem;
-    }
-}
-
-@media (max-width: 30rem) {
-    :root {
-        --grid-cols: 1;
-        --grid-gap-v: 2rem;
-    }
 }
 
 #header-canvas {
@@ -384,7 +367,8 @@ body.dossier-open {
 }
 
 .stat-label {
-    color: #555;
+    color: #777;
+    /* 4.7:1 on #000 — passes WCAG AA (was #555, 2.9:1) */
     white-space: nowrap;
 }
 
@@ -451,6 +435,7 @@ body.dossier-open {
 @media (max-width: 64rem) {
     :root {
         --grid-cols: 2;
+        --grid-gap-v: 2rem;
     }
 
     .dossier-content {
@@ -488,12 +473,56 @@ body.dossier-open {
 }
 
 /* --- 🎯 HOVER POLISH --- */
-.archive-item:hover .image-container {
-    transform: scale(1.01);
+.archive-item {
+    cursor: pointer;
 }
 
 .archive-item .image-container {
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Mouse-only (no sticky hover on touch), and no zoom under reduced motion */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .archive-item:hover .image-container {
+        transform: scale(var(--hover-scale));
+    }
+}
+
+.archive-item:active .image-container {
+    transform: scale(0.99);
+}
+
+.archive-item:focus-visible {
+    outline: 1px solid var(--text-main);
+    outline-offset: 0.5rem;
+}
+
+.close-dossier:focus-visible {
+    outline: 1px solid var(--text-main);
+    outline-offset: 0.25rem;
+}
+
+/* Caption: "E-101" + title revealed on hover/focus (single line, ellipsis) */
+.caption {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.caption-title {
+    opacity: 0;
+    transition: opacity 200ms ease;
+}
+
+.archive-item:focus-visible .caption-title {
+    opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .archive-item:hover .caption-title {
+        opacity: 1;
+    }
 }
 
 /* --- 🖲️ AUDIO CUE FOLLOWER --- */
@@ -508,11 +537,9 @@ body.dossier-open {
     letter-spacing: 0.1em;
     color: #ffffff;
     transform: translate(20px, 20px);
-    /* Position at the bottom-right of the cursor tip */
     white-space: nowrap;
     opacity: 0;
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-    /* Added shadow for readability against light assets */
     transition: opacity 0.5s ease;
 }
 

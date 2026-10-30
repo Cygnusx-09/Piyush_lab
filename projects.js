@@ -80,7 +80,7 @@ const projectData = {
         tools: ["P5.js", "Vibecoded"],
         description: "Interactive brush trail following cursor to paint lines.",
         process: [
-            { type: "image", src: "assets_optimized/P5brush1-ezgif.com-video-to-gif-converter.webp" }
+            { type: "video", src: "assets_optimized/P5brush1-ezgif.com-video-to-gif-converter.mp4" }
         ]
     },
     "E-106": {
@@ -88,7 +88,7 @@ const projectData = {
         tools: ["P5.js", "p5 Brush"],
         description: "Used p5.js to paint generative flowers by mapping sine waves onto polar coordinates",
         process: [
-            { type: "image", src: "assets_optimized/P5flower-ezgif.com-video-to-gif-converter.webp" }
+            { type: "video", src: "assets_optimized/P5flower-ezgif.com-video-to-gif-converter.mp4" }
         ]
     },
     "E-109": {
@@ -96,7 +96,7 @@ const projectData = {
         tools: ["Touchdesigner", "GLSL"],
         description: "Exploration into L-systems with pop in touchdesigner",
         process: [
-            { type: "image", src: "assets_optimized/Organic-ezgif.com-optimize.webp" }
+            { type: "video", src: "assets_optimized/Organic-ezgif.com-optimize.mp4" }
         ]
     },
     "E-110": {
@@ -120,7 +120,7 @@ const projectData = {
         tools: ["Touchdesigner"],
         description: "Procedural geometry generation.",
         process: [
-            { type: "image", src: "assets_optimized/GenerativeGeo-ezgif.com-video-to-gif-converter.webp" }
+            { type: "video", src: "assets_optimized/GenerativeGeo-ezgif.com-video-to-gif-converter.mp4" }
         ]
     },
     "E-113": {
